@@ -21,11 +21,20 @@
       transform: translate(-50%, -50%);
       pointer-events: none;
     }
+    #score {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 24px;
+    }
   </style>
 </head>
 
 <body>
   <div id="crosshair"></div>
+  <div id="score">Score: 0</div>
   <script>
     // Three.js setup
     const scene = new THREE.Scene();
@@ -226,6 +235,10 @@
       }
     }
 
+    // Scoring
+    let score = 0;
+    const scoreElement = document.getElementById('score');
+
     // Shooting
     document.addEventListener('click', onShoot);
 
@@ -246,6 +259,44 @@
       setTimeout(() => {
         scene.remove(bullet);
       }, 2000);
+    }
+
+    function checkBulletCollisions() {
+      scene.children.forEach(child => {
+        if (child.isMesh && child.geometry.type === 'SphereGeometry' && child.velocity) {
+          polarBears.forEach(bear => {
+            if (child.position.distanceTo(bear.position) < 1.5) {
+              scene.remove(child);
+              scene.remove(bear);
+              polarBears.splice(polarBears.indexOf(bear), 1);
+              score += 10;
+              scoreElement.textContent = `Score: ${score}`;
+              createExplosion(bear.position);
+              setTimeout(() => createPolarBear(), 2000); // Respawn a new bear after 2 seconds
+            }
+          });
+        }
+      });
+    }
+
+    function createExplosion(position) {
+      const particleCount = 50;
+      const geometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(particleCount * 3);
+
+      for (let i = 0; i < particleCount * 3; i += 3) {
+        positions[i] = position.x + (Math.random() - 0.5) * 2;
+        positions[i + 1] = position.y + (Math.random() - 0.5) * 2;
+        positions[i + 2] = position.z + (Math.random() - 0.5) * 2;
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const material = new THREE.PointsMaterial({ color: 0xff0000, size: 0.1 });
+      const particles = new THREE.Points(geometry, material);
+
+      scene.add(particles);
+
+      setTimeout(() => scene.remove(particles), 1000);
     }
 
     // Game loop
@@ -276,7 +327,9 @@
 
       player.position.add(direction);
 
-      // Update bullets
+      // Update bullets and check collisions
+      checkBulletCollisions();
+
       scene.children.forEach(child => {
         if (child.isMesh && child.geometry.type === 'SphereGeometry' && child.velocity) {
           child.position.add(child.velocity);
