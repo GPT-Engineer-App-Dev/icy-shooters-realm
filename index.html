@@ -118,20 +118,28 @@
 
     function createPolarBear() {
       const body = new THREE.Mesh(
-        new THREE.CapsuleGeometry(1, 2, 4, 8),
+        new THREE.CylinderGeometry(0.8, 1, 2, 16),
         new THREE.MeshPhongMaterial({ color: 0xffffff })
       );
-      body.position.y = 1.5;
+      body.position.y = 1;
+      body.rotation.x = Math.PI / 2;
 
       const head = new THREE.Mesh(
         new THREE.SphereGeometry(0.8, 16, 16),
         new THREE.MeshPhongMaterial({ color: 0xffffff })
       );
-      head.position.set(0, 2.5, 1);
+      head.position.set(0, 1.5, 0.8);
+
+      const snout = new THREE.Mesh(
+        new THREE.SphereGeometry(0.3, 16, 16),
+        new THREE.MeshPhongMaterial({ color: 0x000000 })
+      );
+      snout.position.set(0, 1.3, 1.5);
 
       const polarBear = new THREE.Group();
       polarBear.add(body);
       polarBear.add(head);
+      polarBear.add(snout);
 
       polarBear.position.set(
         Math.random() * 80 - 40,
