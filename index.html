@@ -35,25 +35,91 @@
     document.body.appendChild(renderer.domElement);
 
     // Ice world setup
-    scene.background = new THREE.Color(0xadd8e6);
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load('https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1024&q=80');
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    scene.background = texture;
+
     const floorGeometry = new THREE.PlaneGeometry(100, 100);
-    const floorMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const floorMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff, shininess: 100 });
     const floor = new THREE.Mesh(floorGeometry, floorMaterial);
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    // Add some ice blocks
-    for (let i = 0; i < 20; i++) {
-      const geometry = new THREE.BoxGeometry(2, 2, 2);
-      const material = new THREE.MeshBasicMaterial({ color: 0x87cefa });
-      const cube = new THREE.Mesh(geometry, material);
-      cube.position.set(
-        Math.random() * 80 - 40,
-        1,
-        Math.random() * 80 - 40
-      );
-      scene.add(cube);
+    // Add varied elements to the scene
+    function addSceneElements() {
+      // Ice blocks
+      for (let i = 0; i < 20; i++) {
+        const geometry = new THREE.BoxGeometry(2, Math.random() * 4 + 1, 2);
+        const material = new THREE.MeshPhongMaterial({ color: 0x87cefa, transparent: true, opacity: 0.8 });
+        const cube = new THREE.Mesh(geometry, material);
+        cube.position.set(
+          Math.random() * 80 - 40,
+          geometry.parameters.height / 2,
+          Math.random() * 80 - 40
+        );
+        scene.add(cube);
+      }
+
+      // Snow piles
+      for (let i = 0; i < 30; i++) {
+        const geometry = new THREE.SphereGeometry(Math.random() * 1.5 + 0.5, 16, 16);
+        const material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+        const snowPile = new THREE.Mesh(geometry, material);
+        snowPile.position.set(
+          Math.random() * 90 - 45,
+          geometry.parameters.radius,
+          Math.random() * 90 - 45
+        );
+        snowPile.scale.y = 0.3;
+        scene.add(snowPile);
+      }
+
+      // Icebergs
+      for (let i = 0; i < 5; i++) {
+        const geometry = new THREE.ConeGeometry(Math.random() * 4 + 2, Math.random() * 8 + 4, 5);
+        const material = new THREE.MeshPhongMaterial({ color: 0xadd8e6 });
+        const iceberg = new THREE.Mesh(geometry, material);
+        iceberg.position.set(
+          Math.random() * 80 - 40,
+          geometry.parameters.height / 2,
+          Math.random() * 80 - 40
+        );
+        scene.add(iceberg);
+      }
+
+      // Frozen trees
+      for (let i = 0; i < 15; i++) {
+        const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.2, 3, 8);
+        const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x8b4513 });
+        const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+
+        const leavesGeometry = new THREE.ConeGeometry(1.5, 3, 8);
+        const leavesMaterial = new THREE.MeshPhongMaterial({ color: 0x90ee90 });
+        const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+        leaves.position.y = 3;
+
+        const tree = new THREE.Group();
+        tree.add(trunk);
+        tree.add(leaves);
+        tree.position.set(
+          Math.random() * 90 - 45,
+          1.5,
+          Math.random() * 90 - 45
+        );
+        scene.add(tree);
+      }
     }
+
+    addSceneElements();
+
+    // Add lighting
+    const ambientLight = new THREE.AmbientLight(0xcccccc, 0.4);
+    scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(1, 1, 0).normalize();
+    scene.add(directionalLight);
 
     // Player setup
     const player = new THREE.Group();
@@ -73,19 +139,27 @@
 
     function onKeyDown(event) {
       switch (event.code) {
-        case 'KeyW': moveForward = true; break;
-        case 'KeyS': moveBackward = true; break;
-        case 'KeyA': moveLeft = true; break;
-        case 'KeyD': moveRight = true; break;
+        case 'KeyW':
+        case 'ArrowUp': moveForward = true; break;
+        case 'KeyS':
+        case 'ArrowDown': moveBackward = true; break;
+        case 'KeyA':
+        case 'ArrowLeft': moveLeft = true; break;
+        case 'KeyD':
+        case 'ArrowRight': moveRight = true; break;
       }
     }
 
     function onKeyUp(event) {
       switch (event.code) {
-        case 'KeyW': moveForward = false; break;
-        case 'KeyS': moveBackward = false; break;
-        case 'KeyA': moveLeft = false; break;
-        case 'KeyD': moveRight = false; break;
+        case 'KeyW':
+        case 'ArrowUp': moveForward = false; break;
+        case 'KeyS':
+        case 'ArrowDown': moveBackward = false; break;
+        case 'KeyA':
+        case 'ArrowLeft': moveLeft = false; break;
+        case 'KeyD':
+        case 'ArrowRight': moveRight = false; break;
       }
     }
 
