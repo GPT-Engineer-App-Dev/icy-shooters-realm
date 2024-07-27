@@ -113,6 +113,48 @@
 
     addSceneElements();
 
+    // Create polar bears
+    const polarBears = [];
+
+    function createPolarBear() {
+      const body = new THREE.Mesh(
+        new THREE.CapsuleGeometry(1, 2, 4, 8),
+        new THREE.MeshPhongMaterial({ color: 0xffffff })
+      );
+      body.position.y = 1.5;
+
+      const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.8, 16, 16),
+        new THREE.MeshPhongMaterial({ color: 0xffffff })
+      );
+      head.position.set(0, 2.5, 1);
+
+      const polarBear = new THREE.Group();
+      polarBear.add(body);
+      polarBear.add(head);
+
+      polarBear.position.set(
+        Math.random() * 80 - 40,
+        0,
+        Math.random() * 80 - 40
+      );
+
+      polarBear.userData.speed = Math.random() * 0.05 + 0.02;
+      polarBear.userData.direction = new THREE.Vector3(
+        Math.random() - 0.5,
+        0,
+        Math.random() - 0.5
+      ).normalize();
+
+      scene.add(polarBear);
+      polarBears.push(polarBear);
+    }
+
+    // Create several polar bears
+    for (let i = 0; i < 5; i++) {
+      createPolarBear();
+    }
+
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0xcccccc, 0.4);
     scene.add(ambientLight);
@@ -231,6 +273,28 @@
         if (child.isMesh && child.geometry.type === 'SphereGeometry' && child.velocity) {
           child.position.add(child.velocity);
         }
+      });
+
+      // Update polar bear positions
+      polarBears.forEach(bear => {
+        bear.position.add(bear.userData.direction.clone().multiplyScalar(bear.userData.speed));
+
+        // Check if the bear is out of bounds and change direction if necessary
+        if (Math.abs(bear.position.x) > 45 || Math.abs(bear.position.z) > 45) {
+          bear.userData.direction.negate();
+        }
+
+        // Randomly change direction occasionally
+        if (Math.random() < 0.01) {
+          bear.userData.direction.set(
+            Math.random() - 0.5,
+            0,
+            Math.random() - 0.5
+          ).normalize();
+        }
+
+        // Make the bear face its movement direction
+        bear.lookAt(bear.position.clone().add(bear.userData.direction));
       });
 
       renderer.render(scene, camera);
