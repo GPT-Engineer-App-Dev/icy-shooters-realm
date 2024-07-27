@@ -189,6 +189,7 @@
         Math.sin(camera.rotation.x),
         -Math.cos(player.rotation.y) * Math.cos(camera.rotation.x)
       );
+      bullet.velocity.normalize().multiplyScalar(0.5); // Set a constant speed
       scene.add(bullet);
 
       // Remove bullet after 2 seconds
@@ -227,7 +228,7 @@
 
       // Update bullets
       scene.children.forEach(child => {
-        if (child.isMesh && child.geometry.type === 'SphereGeometry') {
+        if (child.isMesh && child.geometry.type === 'SphereGeometry' && child.velocity) {
           child.position.add(child.velocity);
         }
       });
